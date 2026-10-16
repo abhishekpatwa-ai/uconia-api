@@ -1,0 +1,20 @@
+# Is service ki pipeline: platform ki GOLDEN PIPELINE ko call karti hai.
+# Build, scan, push, deploy ke saare steps platform repo mein ek jagah hain.
+
+name: deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # GitHub UI se haath se bhi chala sakte ho
+
+permissions:
+  id-token: write # golden pipeline ko OIDC token chahiye
+  contents: read
+
+jobs:
+  deploy:
+    uses: abhishekpatwa-ai/aws-container-platform/.github/workflows/ecs-deploy.yml@main
+    with:
+      service: uconia-api
+      aws-account-id: "448270596538"
