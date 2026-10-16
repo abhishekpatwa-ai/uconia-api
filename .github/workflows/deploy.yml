@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   deploy:
-    uses: abhishekpatwa-ai/aws-container-platform/.github/workflows/ecs-deploy.yml@main
+    uses: abhishekpatwa-ai/uconia-golden-path/.github/workflows/ecs-deploy.yml@main
     with:
       service: uconia-api
       aws-account-id: "448270596538"
