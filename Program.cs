@@ -22,4 +22,38 @@ app.MapGet("/api/info", () => Results.Ok(new
 app.MapGet("/api/hello/{name}", (string name) =>
     Results.Ok(new { message = $"Hello {name}, from uconia-api", version }));
 
+// Database check: connects to RDS PostgreSQL and returns its version.
+// DB_HOST/PORT/NAME come from the task definition; DB_USER/PASSWORD are injected
+// from Secrets Manager by ECS at start-up, so the password never appears in code or config.
+app.MapGet("/api/db", async () =>
+{
+    var host = Environment.GetEnvironmentVariable("DB_HOST");
+    if (string.IsNullOrEmpty(host))
+        return Results.Problem("Database is not configured for this task", statusCode: 503);
+
+    var connectionString = new Npgsql.NpgsqlConnectionStringBuilder
+    {
+        Host = host,
+        Port = int.Parse(Environment.GetEnvironmentVariable("DB_PORT") ?? "5432"),
+        Database = Environment.GetEnvironmentVariable("DB_NAME"),
+        Username = Environment.GetEnvironmentVariable("DB_USER"),
+        Password = Environment.GetEnvironmentVariable("DB_PASSWORD"),
+        SslMode = Npgsql.SslMode.Require, // encrypted in transit
+        Timeout = 5
+    }.ConnectionString;
+
+    try
+    {
+        await using var connection = new Npgsql.NpgsqlConnection(connectionString);
+        await connection.OpenAsync();
+        await using var command = new Npgsql.NpgsqlCommand("select version()", connection);
+        var dbVersion = (string?)await command.ExecuteScalarAsync();
+        return Results.Ok(new { database = "connected", dbVersion, version, host = Environment.MachineName });
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem($"Database connection failed: {ex.Message}", statusCode: 503);
+    }
+});
+
 app.Run();

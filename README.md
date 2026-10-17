@@ -7,6 +7,7 @@ A small .NET 10 minimal API, deployed to AWS ECS Fargate through the platform's 
 | `GET /health` | Health check for the ALB target group |
 | `GET /api/info` | Service name, running version (commit SHA) and the task that answered |
 | `GET /api/hello/{name}` | Example endpoint |
+| `GET /api/db` | Connects to the service's RDS PostgreSQL (password injected from Secrets Manager) and returns its version |
 
 ## How it gets deployed
 
